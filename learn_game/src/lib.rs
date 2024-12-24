@@ -390,6 +390,7 @@ pub fn play_game_2_humans() {
 }
 
 pub fn play_game_human_computer_player() {
+    EXPLORATION_RATE.replace(0.0_f32);
     let player_1 = Box::new(HumanPlayer::new("John".to_owned()));
     let player_2 = Box::new(ComputerPlayerRLmax {
         name: "RLmax".to_owned(),
