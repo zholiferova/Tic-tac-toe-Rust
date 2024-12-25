@@ -90,14 +90,11 @@ impl Player for HumanPlayer {
             loop {
                 if counter > 2 {println!("You tried 3 times"); return Err(io::Error::other("Wrong symbol 3 times"));}
                 io::stdin().read_exact(&mut row_buf)?;
-                //println!("Inside loop for row {:?}", &row_buf);
-                //let x: u32 = row_buf[1].parse().expect("Input not an integer");
-                //println!("Converted to row {:?}", &x);
-                if (49..=52).contains(&row_buf[0]) {
-                    println!("Inside if for row {:?}", &row_buf[0]);
+                if (49..=51).contains(&row_buf[0]) {
                     break;
                 } else {
                     println!("Unknown symbol, please, try again (a number 1, 2 or 3):");
+                    row_buf = [0u8; 2];
                 }
                 counter += 1;
             }
@@ -106,17 +103,16 @@ impl Player for HumanPlayer {
             loop {
                 if counter > 2 {println!("You tried 3 times"); return Err(io::Error::other("Wrong symbol 3 times"));}
                 io::stdin().read_exact(&mut col_buf)?;
-                if (49..=52).contains(&col_buf[0]) {
+                if (49..=51).contains(&col_buf[0]) {
                     break;
                 } else {
                     println!("Unknown symbol, please, try again (a number 1, 2 or 3):");
+                    col_buf = [0u8; 2];
                 }
                 counter += 1;
             }
-            //println!("Before exit: row {:?} and column {:?}", row_buf[0], col_buf[0]);
             let r = char::from(row_buf[0]).to_digit(10).unwrap();
             let c = char::from(col_buf[0]).to_digit(10).unwrap();
-            //println!("After convertion row {:?} column {:?}", r, c);
             let mv = (r as usize - 1, c as usize - 1);
             if board.current_state.available_moves().contains(&mv) {return Ok(mv)
             } else {return Err(io::Error::other("The square is taken, please, choose another one."))}
@@ -282,24 +278,18 @@ impl Player for MinimaxPlayer {
         &self.name
     }
     fn choose_move(&self, board: &Board, q: &mut QTable) -> (usize, usize) {
-        //println!("Entering choose_move: name {:?}, mark {:?}", self.get_name(), self.get_mark());
         let current_state_key = board.current_state.to_state_key() + "max";
         if let Some(mvs) = self.q_max.borrow_mut().get(&current_state_key) {
-            //println!("Choosing move from the existing QTable");
             return *mvs.select_max_move()
         }
         let available_moves = board.current_state.available_moves();
         let mut moves_map: Moves = Moves::from(available_moves);
-        //println!("Printing available moves map from choose_move {:?}", moves_map);
         moves_map.iter_mut().for_each(|(mv, val)| {
             let mut state: GameState = board.current_state.clone();
             let (a, b) = *mv;
             *state.get_mut([a, b]).unwrap() = self.mark.as_char();
-            //println!("Self mark as char: {:?}", self.mark.as_char());
-            //state.draw();
             *val = Self::minimax(state, &self.get_mark().other(), &0, false) as f32;
         });
-        //println!("Printing available moves map after selection {:?}", moves_map);
         let best = *moves_map.select_max_move();
         self.q_max.borrow_mut().insert(current_state_key, moves_map);
         best
@@ -324,18 +314,12 @@ impl Player for MinimaxPlayer {
 }
 impl MinimaxPlayer {
     pub fn minimax (mut state: GameState, mark: &Marks, depth: &i32, isMax: bool) -> i32 {
-        // println!("From entering minimax mark {:?}, depth {:?}, isMax {:?}", mark, depth, isMax);
-        // state.draw();
         match state.is_game_over(&mark.other()) {
             IsGameOver::Win if isMax => {
-                //println!("Returning win isMax value {:?}, isMax {:?}", -10+depth, isMax);
                 return -10 + depth},
             IsGameOver::Win if !isMax => {
-                //println!("Returning win !isMax value {:?}, isMax {:?}", 10-depth, isMax);
                 return 10 - depth},
             IsGameOver::Drawn => {
-                //println!("Returning 0, mark {:?} isMax {:?}", mark, isMax);
-                //state.draw();
                 return 0},
             IsGameOver::InPlay => {
                 if isMax {
@@ -346,8 +330,6 @@ impl MinimaxPlayer {
                         *val = Self::minimax(state.clone(), &mark.other(), &(depth + 1), !isMax) as f32;
                         *state.get_mut([a, b]).unwrap() = '-';
                     });
-                    // println!("max is playing, moves {:?}, mark {:?}, depth {:?}, isMax {:?}", available_moves,
-                    //     mark, depth, isMax);
                     available_moves.values().max_by(|x, y| x.total_cmp(y)).unwrap().clone() as i32
                 } else {
                     let mut available_moves: Moves = Moves::from(state.available_moves());
@@ -357,8 +339,6 @@ impl MinimaxPlayer {
                         *val = Self::minimax(state.clone(), &mark.other(), &(depth + 1), !isMax) as f32;
                         *state.get_mut([a, b]).unwrap() = '-';
                     });
-                    // println!("min is playing, moves {:?}, mark {:?}, depth {:?}, isMax {:?}", available_moves,
-                    //    mark, depth, isMax);
                     available_moves.values().min_by(|x, y| x.total_cmp(y)).unwrap().clone() as i32
                 }
             },
