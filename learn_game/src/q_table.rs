@@ -77,7 +77,6 @@ impl Moves {
             .into_iter()
             .map(|(key, _)| key)
             .collect::<Vec<&(usize, usize)>>();
-        //println!("Selected moves: {:?}", max_moves);
         *max_moves.choose(&mut rng).unwrap()
     }
 }
@@ -196,7 +195,6 @@ where
 
 pub fn q_table_to_disk(path: &std::path::Path, q: &QTable) -> Result<(), anyhow::Error> {
     let dt = Local::now();
-    let timestamp: i64 = dt.timestamp();
     let today = dt.date_naive();
     let filename = "qtable-".to_owned() + (&today.to_string()) + r#".pickle"#;
     let filename_json = "qtable-".to_owned() + &today.to_string() + r#".json"#;
@@ -221,11 +219,9 @@ pub fn q_table_from_disk_pickle(file: &std::path::Path) -> Result<QTable, anyhow
 
 pub fn q_table_from_disk_json(file: &std::path::Path) -> Result<QTable, anyhow::Error> {
     let file = File::open(file)?;
-    //println!("{:?}", file);
     let mut reader = BufReader::new(file);
     let mut buf: String = "".to_owned();
     reader.read_to_string(&mut buf).unwrap();
-    //println!("{:?}", &buf);
     let decoded: QTable = serde_json::from_str(&buf)?;
     Ok(decoded)
 }
