@@ -82,6 +82,7 @@ impl Player for HumanPlayer {
         fn move_from_human(board: &Board, _q: &QTable, name: &str) -> Result<(usize, usize), io::Error> {
             let mut row_buf = [0u8; 2];
             let mut col_buf = [0u8; 2];
+            let mut garbage = String::new();
             println!("Drawing current state from human.choose_move()");
             board.current_state.draw();
             println!("{:?}, please, choose your move", name);
@@ -94,6 +95,7 @@ impl Player for HumanPlayer {
                     break;
                 } else {
                     println!("Unknown symbol, please, try again (a number 1, 2 or 3):");
+                    io::stdin().read_line(&mut garbage);
                     row_buf = [0u8; 2];
                 }
                 counter += 1;
@@ -107,6 +109,7 @@ impl Player for HumanPlayer {
                     break;
                 } else {
                     println!("Unknown symbol, please, try again (a number 1, 2 or 3):");
+                    io::stdin().read_line(&mut garbage);
                     col_buf = [0u8; 2];
                 }
                 counter += 1;
@@ -158,8 +161,12 @@ impl HumanPlayer {
     }
     pub fn choose_mark() -> io::Result<char> {
         let mut mark_byte = [0u8; 2];
+        let mut garbage_mark = String::new();
         println!("Human player, do you want to play X (makes the first move) or 0?");
         io::stdin().read_exact(&mut mark_byte[..])?;
+        if mark_byte[1] != 10 {
+            io::stdin().read_line(&mut garbage_mark);
+        }
         Ok(mark_byte[0] as char)
     }
 }
